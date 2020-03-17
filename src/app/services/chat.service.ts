@@ -41,7 +41,7 @@ export class ChatService {
 
   cargarMensajes() {
     this.itemsCollection = this.afs.collection<Mensaje>("chats", ref =>
-      ref.orderBy("fecha", "desc").limit(5)
+      ref.orderBy("fecha", "desc").limit(20)
     );
     return this.itemsCollection.valueChanges().pipe(
       tap(mensajes => {
@@ -53,9 +53,10 @@ export class ChatService {
 
   agregarMensaje(texto: string) {
     const mensaje: Mensaje = {
-      nombre: "Demo",
+      nombre: this.usuario.nombre,
       mensaje: texto,
-      fecha: new Date().getTime()
+      fecha: new Date().getTime(),
+      uid: this.usuario.uid
     };
 
     return this.itemsCollection.add(mensaje);
