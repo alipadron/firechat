@@ -35,6 +35,7 @@ export class ChatService {
     this.auth.signInWithPopup(new auth.GoogleAuthProvider());
   }
   logout() {
+    this.usuario = {};
     this.auth.signOut();
   }
 
