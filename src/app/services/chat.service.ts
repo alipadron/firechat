@@ -4,8 +4,12 @@ import {
   AngularFirestoreCollection
 } from "@angular/fire/firestore";
 import "firebase/firestore";
+import "firebase/auth";
 import { Mensaje } from "../interfaces/mensaje.interface";
-import { map } from "rxjs/operators";
+import { tap } from "rxjs/operators";
+
+import { AngularFireAuth } from "@angular/fire/auth";
+import { auth } from "firebase/app";
 
 @Injectable({
   providedIn: "root"
@@ -13,14 +17,35 @@ import { map } from "rxjs/operators";
 export class ChatService {
   private itemsCollection: AngularFirestoreCollection<Mensaje>;
   chats: Mensaje[] = [];
+  usuario: any = {};
 
-  constructor(private afs: AngularFirestore) {}
+  constructor(private afs: AngularFirestore, public auth: AngularFireAuth) {
+    this.auth.authState.subscribe(user => {
+      console.log(user);
+      if (!user) {
+        return;
+      }
+
+      this.usuario.nombre = user.displayName;
+      this.usuario.uid = user.uid;
+    });
+  }
+
+  login(proveedor: string) {
+    this.auth.signInWithPopup(new auth.GoogleAuthProvider());
+  }
+  logout() {
+    this.auth.signOut();
+  }
 
   cargarMensajes() {
-    this.itemsCollection = this.afs.collection<Mensaje>("chats");
+    this.itemsCollection = this.afs.collection<Mensaje>("chats", ref =>
+      ref.orderBy("fecha", "desc").limit(5)
+    );
     return this.itemsCollection.valueChanges().pipe(
-      map(mensajes => {
-        this.chats = mensajes;
+      tap(mensajes => {
+        this.chats = [];
+        mensajes.forEach(m => this.chats.unshift(m));
       })
     );
   }
